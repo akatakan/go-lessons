@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  # 1. Veritabanı Servisimiz
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: deniz_user
+      POSTGRES_PASSWORD: gizli_sifre
+      POSTGRES_DB: kullanici_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. Go Uygulamamız
+  app:
+    build: .
+    container_name: go_app
+    ports:
+      - "8080:8080"
+    environment:
+      # Veritabanına bağlanmak için gerekli bilgiler
+      # Önemli: Host kısmına "localhost" değil, servis adı olan "db" yazıyoruz!
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: deniz_user
+      DB_PASSWORD: gizli_sifre
+      DB_NAME: kullanici_db
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

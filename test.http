@@ -2,7 +2,23 @@ POST http://localhost:8080/user
 Content-Type: application/json
 
 {
-  "ID": 3,
-  "KullaniciAdi": "Atakan",
-  "Email": "atakan@mail.com"
+  "kullanici_adi": "atakan_dev",
+  "email": "atakan@mail.com"
 }
+
+###
+
+POST http://localhost:8080/login
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "kullanici_adi": "atakan_dev",
+  "password": "atakan12"
+}
+
+###
+
+GET http://localhost:8080/user/1
+Authorization: Bearer {{token}}
+Content-Type: application/json

@@ -58,11 +58,28 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	var user models.User
-	err := json.NewDecoder(r.Body).Decode(&user)
+	var req struct {
+		KullaniciAdi string `json:"kullanici_adi" validate:"required,min=3"`
+		Email        string `json:"email" validate:"required,email"`
+		Sifre        string `json:"password" validate:"required,min=6"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		http.Error(w, "Geçersiz veri", http.StatusBadRequest)
 		return
+	}
+
+	hashedPassword, err := utils.HashPassword(req.Sifre)
+	if err != nil {
+		http.Error(w, "Şifre işlenemedi", http.StatusInternalServerError)
+		return
+	}
+
+	user := models.User{
+		KullaniciAdi: req.KullaniciAdi,
+		Email:        req.Email,
+		PasswordHash: hashedPassword,
 	}
 
 	if err := h.Validate.Struct(user); err != nil {

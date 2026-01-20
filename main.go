@@ -38,9 +38,16 @@ func main() {
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		host, user, pass, dbname, port)
-	db, _ := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	db.AutoMigrate(&models.User{})
-
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		slog.Error("Veritabanına bağlanılamadı", "error", err)
+		os.Exit(1)
+	}
+	err = db.AutoMigrate(&models.User{})
+	if err != nil {
+		slog.Error("Migrasyon hatası", "error", err)
+		os.Exit(1)
+	}
 	mux := http.NewServeMux()
 	repo := repository.NewSQLUserRepository(db)
 	v := validator.New()

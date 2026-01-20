@@ -3,13 +3,13 @@ Content-Type: application/json
 
 {
   "kullanici_adi": "atakan_dev",
-  "email": "atakan@mail.com"
+  "email": "atakan@mail.com",
+  "sifre": "atakan12"
 }
 
 ###
 
 POST http://localhost:8080/login
-Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -19,6 +19,6 @@ Content-Type: application/json
 
 ###
 
-GET http://localhost:8080/user/1
-Authorization: Bearer {{token}}
+GET http://localhost:8080/user/3
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjkyMDI2MTIsInVzZXJfaWQiOjN9.W5Pbml35psDRAvjtcEQk-QkhDsQtLT-fkK9uqTnrMVQ
 Content-Type: application/json

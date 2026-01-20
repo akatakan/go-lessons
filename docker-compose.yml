@@ -4,11 +4,11 @@ services:
   # 1. Veritabanı Servisimiz
   db:
     image: postgres:15-alpine
-    container_name: postgres_db
+    container_name: postgre_testo_db
     environment:
-      POSTGRES_USER: deniz_user
-      POSTGRES_PASSWORD: gizli_sifre
-      POSTGRES_DB: kullanici_db
+      POSTGRES_USER: akagei
+      POSTGRES_PASSWORD: akagei
+      POSTGRES_DB: testodb
     ports:
       - "5432:5432"
     volumes:
@@ -25,11 +25,17 @@ services:
       # Önemli: Host kısmına "localhost" değil, servis adı olan "db" yazıyoruz!
       DB_HOST: db
       DB_PORT: 5432
-      DB_USER: deniz_user
-      DB_PASSWORD: gizli_sifre
-      DB_NAME: kullanici_db
+      DB_USER: akagei
+      DB_PASSWORD: akagei
+      DB_NAME: testodb
     depends_on:
       - db
+
+  redis:
+    image: redis:alpine
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
 
 volumes:
   postgres_data:

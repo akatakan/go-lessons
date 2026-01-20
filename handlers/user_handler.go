@@ -8,10 +8,13 @@ import (
 	"go-backend/utils"
 	"net/http"
 	"strconv"
+
+	"github.com/go-playground/validator/v10"
 )
 
 type UserHandler struct {
-	Repo repository.IUserRepository
+	Repo     repository.IUserRepository
+	Validate *validator.Validate
 }
 
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -59,6 +62,11 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		http.Error(w, "Geçersiz veri", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.Validate.Struct(user); err != nil {
+		http.Error(w, "Validasyon hatası: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 	h.Repo.Save(user)

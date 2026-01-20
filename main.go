@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"go-backend/handlers"
 	"go-backend/middleware"
@@ -9,7 +10,11 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
+	"github.com/go-playground/validator/v10"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -38,16 +43,41 @@ func main() {
 
 	mux := http.NewServeMux()
 	repo := repository.NewSQLUserRepository(db)
-	handler := &handlers.UserHandler{Repo: repo}
+	v := validator.New()
+	handler := &handlers.UserHandler{Repo: repo, Validate: v}
 	mux.Handle("GET /user/{id}", middleware.AuthMiddleware(http.HandlerFunc(handler.GetUser)))
 	mux.Handle("POST /user/update-password", middleware.AuthMiddleware(http.HandlerFunc(handler.UpdatePassword)))
 
 	mux.HandleFunc("POST /user", handler.CreateUser)
 	mux.HandleFunc("POST /login", handler.Login)
-	http.HandleFunc("GET /user/{id}", handler.GetUser)
-	http.HandleFunc("POST /user", handler.CreateUser)
 
 	slog.Info("Sunucu hazırlanıyor", "port", 8080, "env", "production")
 	finalHandler := middleware.CORSMiddleware(loggerMiddleware(mux))
-	http.ListenAndServe(":8080", finalHandler)
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: finalHandler,
+	}
+	go func() {
+		slog.Info("Sunucu 8080 portunda başlıyor...")
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("Sunucu başlatılamadı", "error", err)
+			os.Exit(1)
+		}
+	}()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+	<-stop
+
+	slog.Info("Sunucu kapatılıyor...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		slog.Error("Sunucu zorla kapatıldı", "error", err)
+	}
+
+	slog.Info("Sunucu güvenli bir şekilde durduruldu.")
 }

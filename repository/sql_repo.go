@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"go-backend/models"
+	"log/slog"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -30,7 +31,7 @@ func NewSQLUserRepository(database *gorm.DB) *SQLUserRepository {
 	return &SQLUserRepository{
 		db: database,
 		redisClient: redis.NewClient(&redis.Options{
-			Addr: "localhost:6379",
+			Addr: "redis:6379",
 		}),
 	}
 }
@@ -60,6 +61,7 @@ func (r *SQLUserRepository) GetUserByID(id int) (models.User, bool) {
 	var user models.User
 	result := r.db.First(&user, id)
 	if result.Error != nil {
+		slog.Error("Veritabanı hatası", "error", result.Error, "userID", id)
 		return models.User{}, false
 	}
 	return user, true

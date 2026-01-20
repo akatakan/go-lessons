@@ -1,9 +1,12 @@
 package middleware
 
 import (
+	"context"
 	"go-backend/utils"
 	"net/http"
 	"strings"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func AuthMiddleware(next http.Handler) http.Handler {
@@ -25,6 +28,11 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
-		next.ServeHTTP(w, r)
+
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			userID := int(claims["user_id"].(float64))
+			ctx := context.WithValue(r.Context(), "user_id", userID)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		}
 	})
 }
